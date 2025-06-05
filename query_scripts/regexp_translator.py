@@ -13,15 +13,11 @@ class RegexpTranslator:
         while self.pos < len(self.tokens):
             self._parse_next()
             
-        # print("NEXT QUERY\n")
-
     def _parse_next(self):
         token = self.tokens[self.pos]
 
         for name, pattern in self.regexp_patterns.items():
             if re.match(pattern, token):
-                # print(f"Found '{name}' clause: {token}")
-                
                 if name == "opening_negation":
                     self._parse_opening_not()
                     

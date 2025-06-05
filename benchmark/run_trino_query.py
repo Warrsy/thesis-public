@@ -12,7 +12,7 @@ session = requests.Session()
 
 def run_query(query, tag, query_type):
     start_time = time.time()
-    # print(f"Running query [{query_type}] tag={tag}...")
+
     try: 
         data = _send_query(query)
         data, query_id, all_rows = _poll_query_results(data)
@@ -26,7 +26,6 @@ def run_query(query, tag, query_type):
         total_rows = stats.get("processedRows", 0)
         cpu_time = stats.get("cpuTimeMillis", 0)
         cpu_time_per_million_rows = cpu_time / (total_rows / 1_000_000)
-
         
         result = {
             "query_id": query_id,

@@ -8,7 +8,6 @@ def execute_queries_from_file(sql_dir, filename):
     with open(os.path.join(sql_dir, filename), "r") as file:
         queries = file.read().split("-- QUERY: ")
         results = run_and_record_queries(queries)
-        # results = run_in_parallel(queries)
 
     return results
 
@@ -18,7 +17,7 @@ def run_in_parallel(queries):
     results = []
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        for index, q in enumerate(queries[1:]):  # Skip the header
+        for q in queries[1:]:
             query_id_line, query_body = q.strip().split("\n", 1)
             query_id = query_id_line.strip()
             query_type = "MATCH_RECOGNIZE" if "MATCH_RECOGNIZE" in query_body.upper() else "REGEX"
@@ -28,8 +27,6 @@ def run_in_parallel(queries):
                     run_trino_query.run_query, 
                         query_body, query_id, query_type)] = (query_id, query_body)
             
-            # if index == 10:
-            #     break
         for future in concurrent.futures.as_completed(future_to_query):
             query_id, _ = future_to_query[future]
             
@@ -53,15 +50,13 @@ def run_and_record_queries(queries):
         print(f"\rExecuting query {index + 1}/{len(queries) - 1}", end='', flush=True)
         result = run_trino_query.run_query(query_body, query_id, query_type)
         results.append(result)
-                
-        # if index == 10:
-        #     break
+
     print()
     return results
 
 warmup_script.run_warmup_script()
 
-for model_num in range(0, 90):
+for model_num in range(0, 16):
     sql_dir = f"data/queries/model{model_num}"
     
     for filename in os.listdir(sql_dir):

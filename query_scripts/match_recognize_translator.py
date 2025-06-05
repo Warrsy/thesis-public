@@ -12,8 +12,7 @@ class MatchRecognizeTranslator:
         while self.pos < len(self.tokens):
             self._parse_next()
 
-    # Add check for starts with (i.e. '^') and ends with (i.e. '$'). If not contains,
-    # pattern needs 'ANY'
+
     def _parse_next(self):
         token = self.tokens[self.pos]
         if (self.pos == 1 and token != '^'):
@@ -49,6 +48,7 @@ class MatchRecognizeTranslator:
             logging.basicConfig(level=logging.ERROR)
             logging.error(f"Unknown token: {token}")
 
+
     def _parse_any(self):
         self.pos += 1
         append_star = False
@@ -70,6 +70,7 @@ class MatchRecognizeTranslator:
         alias = self._next_alias()
         self.definitions[alias] = f'{alias} AS activity != {self.tokens[self.pos]}'
         self.pattern_parts.append(alias)
+
 
     def _parse_not(self):
         self.pos += 1 # Skip 'NOT'
@@ -121,6 +122,7 @@ class MatchRecognizeTranslator:
 
         self.pos += 1
 
+
     def _format_pattern(self):
         pattern_string = ""
 
@@ -139,6 +141,7 @@ class MatchRecognizeTranslator:
                 pattern_string += token
                 
         return pattern_string
+
 
     def _format_definitions(self):
         return ', '.join(self.definitions.values())

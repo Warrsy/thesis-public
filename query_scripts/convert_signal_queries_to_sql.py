@@ -5,13 +5,34 @@ import match_recognize_query as mrq
 import regexp_translator as rt
 import regex_query as rq
 import textwrap
-import os
 import logging
 from pathlib import Path
 
 PERCENT_RANGE = range(10, 101, 10)
 DATA_DIR = Path(__file__).parent.parent / 'data' / 'queries'
 CSV_PATH = DATA_DIR / 'signal_queries.csv'
+
+
+regexp_patterns = {
+    "opening_negation": 
+        r"\^\s*NOT\(\s'[^']*?'\s\)|\^\sNOT\(\s'[^']*?'\s\|\s'[^']*?'\s\)\*",
+    "closing_negation": 
+        r"NOT\(\s'[^']*?'\s\)\*\$|NOT\(\s'[^']*?'\s\|\s'[^']*?'\s\)\*\s*\$",
+    "closing_negation_OR": 
+        r"\(\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\)\*\s\|\s\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\)\)\*\s*\$",
+    "closing_directly_follows_negation": 
+        r"\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\)\s*\$",
+    "in-directly_follows": 
+        r"\(\s'[^']*?'\s~>\s'[^']*?'\s\)\*",
+    "in-directly_any_follows": 
+        r"\(\s'[^']*?'\sANY\*\s'[^']*?'\s\)\*",
+    "directly_follows_negation": 
+        r"\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\)\*",
+    "no_consecutive": 
+        r"\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\)\*",
+    "In-directly_follows_with_trailing": 
+        r"\(\(\s'[^']*?'\sANY\*\s'[^']*?'\sANY\*\)\s\|\s\(\s'[^']*?'\sANY\*\s'[^']*?'\sANY\*\)\)\*"
+}
 
 def main():
     logging.basicConfig(level=logging.INFO)
@@ -24,9 +45,6 @@ def main():
     for model_num, model_id in enumerate(unique_models):
         df_subset = dataFrame[dataFrame['model_id'] == model_id]
         process_model(model_num, model_id, df_subset)
-        
-        # if model_num == 1:
-        #     break
 
 
 def process_model(model_num: int, model_id: str, df_subset: pd.DataFrame):
@@ -55,7 +73,7 @@ def process_percent(df_subset: pd.DataFrame, model_num: int, model_id: str, perc
             tokenized_query_regex = tokenize_signal_query_regex(match_query)
             
             patternTranslator = mrt.MatchRecognizeTranslator(tokenized_query_match_recognize)
-            regexpTranslator = rt.RegexpTranslator(tokenized_query_regex, regexp_patterns2)
+            regexpTranslator = rt.RegexpTranslator(tokenized_query_regex, regexp_patterns)
             
             patternTranslator.translate()
             regexpTranslator.translate()
@@ -77,54 +95,8 @@ def process_percent(df_subset: pd.DataFrame, model_num: int, model_id: str, perc
             f.write(str(query).strip() + "\n\n")
 
 
-
-
-
-regexp_patterns = {
-    "opening_negation": 
-        r"\^\s*NOT\([^()]*?\)\*",
-    "closing_negation": 
-        r"NOT\([^()]*?\)\*\s*\$",
-    "closing_negation_OR": 
-        r"\(\([^()]*? NOT\([^()]*?\)\)\*\s\|\s\([^()]*? NOT\([^()]*?\)\)\)\*\s\$",
-    "closing_directly_follows_negation": 
-        r"\(\([^()]*? NOT\(\([^()]*?\)\*\)\s\$",
-    "in-directly_follows": 
-        r"\([^()]*? ~> [^()]*?\)\*",
-    "in-directly_any_follows": 
-        r"\([^()]*? ANY\* [^()]*?\)\*",
-    "directly_follows_negation": 
-        r"\([^^()]*? NOT\([^()]*?\)*\)\*\)\*",
-    "no_consecutive": 
-        r"\([^()]*? NOT\([^()]*?\)\* [^()]*? NOT\([^()]*?\)\*\)\*",
-    "In-directly_follows_with_trailing": 
-        r"\(\([^()]*? ANY\* [^()]*? ANY\*\)\s\|\s\([^()]*? ANY\* [^()]*? ANY\*\)\)\*"
-}
-
-regexp_patterns2 = {
-    "opening_negation": 
-        r"\^\s*NOT\(\s'[^']*?'\s\)|\^\sNOT\(\s'[^']*?'\s\|\s'[^']*?'\s\)\*",
-    "closing_negation": 
-        r"NOT\(\s'[^']*?'\s\)\*\$|NOT\(\s'[^']*?'\s\|\s'[^']*?'\s\)\*\s*\$",
-    "closing_negation_OR": 
-        r"\(\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\)\*\s\|\s\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\)\)\*\s*\$",
-    "closing_directly_follows_negation": 
-        r"\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\)\s*\$",
-    "in-directly_follows": 
-        r"\(\s'[^']*?'\s~>\s'[^']*?'\s\)\*",
-    "in-directly_any_follows": 
-        r"\(\s'[^']*?'\sANY\*\s'[^']*?'\s\)\*",
-    "directly_follows_negation": 
-        r"\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\)\*",
-    "no_consecutive": 
-        r"\(\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\s'[^']*?'\sNOT\(\s'[^']*?'\s\)\*\)\*",
-    "In-directly_follows_with_trailing": 
-        r"\(\(\s'[^']*?'\sANY\*\s'[^']*?'\sANY\*\)\s\|\s\(\s'[^']*?'\sANY\*\s'[^']*?'\sANY\*\)\)\*"
-}
-
-
 def tokenize_signal_query_regex(match_query):
-    patterns = list(regexp_patterns2.values())
+    patterns = list(regexp_patterns.values())
     combined_pattern = r"(" + r"|".join(patterns) + r")"
     token_pattern = re.compile(combined_pattern, re.VERBOSE)
 
@@ -203,67 +175,3 @@ def create_queries(activity, query_num, table_name):
 
 if __name__ == "__main__":
     main()
-
-# script_dir = os.path.dirname(os.path.abspath(__file__))
-# csv_path = os.path.join(script_dir, '..', 'data', 'queries', 'signal_queries.csv')
-# dataFrame = pd.read_csv(csv_path)
-
-# unique_models = dataFrame['model_id'].unique()
-# total_cases = len(unique_models)
-
-# print(f"Loaded {total_cases} unique models from {csv_path}")
-
-# for model_num, model_id in enumerate(unique_models):
-#     df_subset = dataFrame[dataFrame['model_id'] == model_id]
-    
-#     for percent in range(10, 101, 10):
-#         sql_queries = []
-#         output_file = os.path.join(
-#             script_dir, 
-#             '..', 
-#             'data', 
-#             'queries', 
-#             f'model{model_num}', 
-#             f'model{model_num}_{model_id}_{percent}.sql')
-#         table_name = f"postgresql.public.model{model_num}_{model_id}_{percent}"
-        
-#         for query_num, (_, row) in enumerate(df_subset.iterrows()):
-#             signal_query = row['signal_query']
-
-#             match_query = find_matches(signal_query)
-        
-#             if match_query == '':
-#                 activity = find_activity_in_query(signal_query)
-#                 regex_query, match_recognize_query = create_queries(activity, query_num, table_name)
-                
-#             else:
-#                 tokenized_query_match_recognize = tokenize_signal_query_match_recognize(match_query)
-#                 tokenized_query_regex = tokenize_signal_query_regex(match_query)
-                
-#                 patternTranslator = mrt.MatchRecognizeTranslator(tokenized_query_match_recognize)
-#                 regexpTranslator = rt.RegexpTranslator(tokenized_query_regex, regexp_patterns2)
-                
-#                 patternTranslator.translate()
-#                 regexpTranslator.translate()
-                
-#                 pattern = patternTranslator._format_pattern()
-#                 definitions = patternTranslator._format_definitions()
-#                 sequences = regexpTranslator._return_sequences()
-                
-#                 match_recognize_query = mrq.MatchRecognizeQuery(
-#                     model_id, pattern, definitions, query_num, table_name)
-#                 regex_query = rq.RegexQuery(
-#                     model_id, table_name, sequences, query_num)
-
-#             sql_queries.append(match_recognize_query)
-#             sql_queries.append(regex_query)
-
-#         output_dir = f'data/queries/model{model_num}'
-#         os.makedirs(output_dir, exist_ok=True)
-
-#         with open(output_file, 'w') as f:
-#             for query in sql_queries:
-#                 f.write(str(query).strip() + "\n\n")
-
-#     if model_num == 1:
-#         break

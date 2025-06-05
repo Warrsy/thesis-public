@@ -5,7 +5,6 @@ import concurrent.futures
 def execute_queries_from_file(sql_dir, filename):
     with open(os.path.join(sql_dir, filename), "r") as file:
         queries = file.read().split("-- QUERY: ")
-        # results = run_and_record_queries(queries)
         results = run_in_parallel(queries)
 
     return results
