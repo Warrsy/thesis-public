@@ -81,11 +81,9 @@ def process_percent(df_subset: pd.DataFrame, model_num: int, model_id: str, perc
             pattern = patternTranslator._format_pattern()
             definitions = patternTranslator._format_definitions()
             sequences = regexpTranslator._return_sequences()
-            
-            match_recognize_query = mrq.MatchRecognizeQuery(
-                model_id, pattern, definitions, query_num, table_name)
-            regex_query = rq.RegexQuery(
-                model_id, table_name, sequences, query_num)
+
+            match_recognize_query = mrq.MatchRecognizeQuery(pattern, definitions, query_num, table_name)
+            regex_query = rq.RegexQuery(table_name, sequences, query_num)
 
         sql_queries.append(match_recognize_query)
         sql_queries.append(regex_query)

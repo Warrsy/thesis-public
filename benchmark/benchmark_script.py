@@ -22,7 +22,6 @@ def run_in_parallel(queries):
             query_id = query_id_line.strip()
             query_type = "MATCH_RECOGNIZE" if "MATCH_RECOGNIZE" in query_body.upper() else "REGEX"
             
-            
             future_to_query[executor.submit(
                     run_trino_query.run_query, 
                         query_body, query_id, query_type)] = (query_id, query_body)

@@ -4,7 +4,6 @@ from io import StringIO
 import glob
 import os
 
-
 POSTGRES_HOST = 'localhost'
 POSTGRES_PORT = '5432'
 POSTGRES_DB = 'trinodb'
@@ -12,6 +11,42 @@ POSTGRES_USER = 'trino'
 POSTGRES_PASSWORD = 'secret'
 CSV_DELIMITER = ','  # Adjust if needed
 CSV_HAS_HEADER = True  # Set to True if your CSV has a header row
+
+
+def main():
+    conn = None
+    
+    try:
+        conn = psycopg2.connect(
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            dbname=POSTGRES_DB,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD
+        )
+
+        conn.autocommit = False
+        print("Connected to PostgreSQL database.")
+
+        for model_num in range(0, 16):
+            pattern = f"data/models/model{model_num}/model{model_num}_*.csv"
+            matching_files = glob.glob(pattern)
+            
+            
+            for file_path in matching_files:
+                base_name = os.path.splitext(os.path.basename(file_path))[0]
+                load_model_to_database(conn, file_path, base_name)
+
+    except psycopg2.Error as e:
+        print(f"Error connecting to or interacting with PostgreSQL: {e}")
+        if conn:
+            conn.rollback()
+            print("Transaction rolled back due to error.")
+    
+    finally:
+        if conn:
+            conn.close()
+            print("PostgreSQL connection closed.")
 
 
 def create_table(conn, table_name, column_names):
@@ -67,42 +102,6 @@ def load_model_to_database(conn, file_path, table_name):
 
     copy_data_from_csv(conn, table_name, file_path, CSV_DELIMITER, CSV_HAS_HEADER)
     conn.commit()
-
-
-def main():
-    conn = None
-    
-    try:
-        conn = psycopg2.connect(
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-            dbname=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD
-        )
-
-        conn.autocommit = False
-        print("Connected to PostgreSQL database.")
-
-        for model_num in range(0, 16):
-            pattern = f"data/models/model{model_num}/model{model_num}_*.csv"
-            matching_files = glob.glob(pattern)
-            
-            
-            for file_path in matching_files:
-                base_name = os.path.splitext(os.path.basename(file_path))[0]
-                load_model_to_database(conn, file_path, base_name)
-
-    except psycopg2.Error as e:
-        print(f"Error connecting to or interacting with PostgreSQL: {e}")
-        if conn:
-            conn.rollback()
-            print("Transaction rolled back due to error.")
-    
-    finally:
-        if conn:
-            conn.close()
-            print("PostgreSQL connection closed.")
 
 if __name__ == "__main__":
     main()

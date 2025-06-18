@@ -74,9 +74,8 @@ def run_warmup_script():
             
         if filename:
             print(f"Processing file: {filename}")
-            model_version = filename.split(".")[0]
-            
             execute_queries_from_file(sql_dir, filename)
+            
         else:
             print(f"No file starting with model{model_num} and ending with 100.sql found in {sql_dir}")
             

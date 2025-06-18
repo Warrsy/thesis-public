@@ -2,7 +2,7 @@
 import textwrap
 
 class MatchRecognizeQuery:
-    def __init__(self, model_id, pattern, definitions, query_num, table_name):
+    def __init__(self, pattern, definitions, query_num, table_name):
         self.select_clause = textwrap.dedent(f"""
             -- QUERY: {query_num}
             -- TYPE: MATCH_RECOGNIZE

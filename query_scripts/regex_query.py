@@ -1,7 +1,7 @@
 import textwrap
 
 class RegexQuery:
-    def __init__(self, model_id, table_name, sequences, query_num):
+    def __init__(self, table_name, sequences, query_num):
         self.raw_traces = textwrap.dedent(f"""
             -- QUERY: {query_num}
             -- TYPE: regex
