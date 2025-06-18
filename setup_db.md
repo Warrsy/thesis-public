@@ -17,7 +17,7 @@ docker run --name trino-postgres -p 5432:5432 -e POSTGRES_USER=trino -e POSTGRES
 ### **Step 2: Start the Trino Docker Container (If Not Already Running)**
 Now, let's get Trino running in its own container. We'll use the official Trino Docker image from Docker Hub.
 ```Bash
-docker run --name trino-server -p 8080:8080 trinodb/trino:latest
+docker run --name trino-server -p 8080:8080 trinodb/trino:440
 ```
 - `docker run`: Again, this starts a new Docker container.
 - `--name trino-server`: We're naming this container "trino-server".
